@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# git-fp: Force push with lease (safe force push)
+# Usage: git fp
+exec git push --force-with-lease "$@"

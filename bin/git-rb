@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# git-rb: Fetch and interactive rebase onto origin/master with autosquash
+# Usage: git rb
+git fetch
+exec git rebase origin/master -i "$@"

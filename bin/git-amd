@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# git-amd: Amend-squash — stage, fixup commit, and autosquash rebase in one step
+# Usage: git amd [<commit-ref>]
+#   Defaults to HEAD if no commit ref given.
+#   If nothing is staged, stages all changes first.
+
+set -euo pipefail
+
+target="$(git rev-parse --verify "${1:-HEAD}")" || exit 1
+
+if git diff --cached --quiet; then
+  git add -A
+fi
+
+git commit --fixup "$target"
+GIT_SEQUENCE_EDITOR=: git rebase -i "${target}^"

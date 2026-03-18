@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# git-fix: Create a fixup commit for interactive rebase squashing
+# Usage: git fix <commit-ref>
+exec git commit --fixup "$@"

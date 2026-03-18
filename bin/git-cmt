@@ -1,0 +1,150 @@
+#!/usr/bin/env bash
+# git-cmt: Smart commit → branch → push → PR assistant
+#
+# Usage:
+#   git cmt [-m "message"] [-a] [-- extra-flags]
+#
+# Instead of committing to the current branch, asks where to commit:
+#   [t] This branch (current)
+#   [n] New branch (from master)
+#   [s] Stacked branch (from this branch)
+#
+# Encourages automatically generated branches and a commit-focused workflow.
+# Automatic PR creation baked in.
+
+set -euo pipefail
+
+msg=''
+flags=''
+add_all=''
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -m) shift; msg="$1" ;;
+    -m*) msg="${1#-m}" ;;
+    -a) add_all=1 ;;
+    *) flags="$flags $1" ;;
+  esac
+  shift
+done
+
+git status --short
+echo ''
+
+if [ -n "$add_all" ]; then
+  if git diff --quiet && git diff --cached --quiet && [ -z "$(git ls-files --others --exclude-standard)" ]; then
+    echo 'Nothing to commit.'
+    exit 1
+  fi
+elif git diff --cached --quiet; then
+  echo 'Nothing staged. Use git add first (or pass -a).'
+  exit 1
+fi
+
+if [ -z "$msg" ]; then
+  printf 'Commit message: '
+  read -r msg
+  [ -z "$msg" ] && echo 'Aborted: no message' && exit 1
+fi
+
+cur=$(git branch --show-current)
+echo ''
+echo 'Commit to:'
+printf '  [t] This branch (%s)\n' "$cur"
+echo '  [n] New branch (from master)'
+echo '  [s] Stacked branch (from this branch)'
+printf 'Choice [t/n/s]: '
+read -r choice
+echo ''
+
+slug=$(echo "$msg" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '-' | sed 's/^-//;s/-$//')
+
+case "$choice" in
+  n|N|s|S)
+    branch="torbenn/$slug"
+    if [ "$choice" = n ] || [ "$choice" = N ]; then
+      base_arg=master
+      pr_base=master
+    else
+      base_arg=
+      pr_base="$cur"
+    fi
+
+    if [ -n "$add_all" ]; then git add -A || exit 1; fi
+
+    if [ -n "$base_arg" ]; then
+      missing=''
+      for f in $(git diff --cached --name-only --diff-filter=DMT); do
+        if ! git cat-file -e "origin/$base_arg:$f" 2>/dev/null; then
+          missing="$missing  $f\n"
+        fi
+      done
+      if [ -n "$missing" ]; then
+        printf 'Cannot move to new branch from %s. These modified files do not exist on %s:\n' "$base_arg" "$base_arg"
+        printf "$missing"
+        echo 'Use [s] (stacked branch) instead, or commit to this branch.'
+        exit 1
+      fi
+    fi
+
+    git commit -q $flags -m "$msg" || exit 1
+    commit_sha=$(git rev-parse HEAD)
+
+    unstaged_stash=''
+    if ! git diff --quiet || [ -n "$(git ls-files --others --exclude-standard)" ]; then
+      git stash push -q --include-untracked -m "git-cmt-unstaged" >/dev/null || {
+        git reset -q --soft HEAD~1
+        exit 1
+      }
+      unstaged_stash=1
+    fi
+
+    # Undo the temp commit on the original branch before branching.
+    # The commit object (commit_sha) is preserved and will be cherry-picked.
+    git reset -q --hard HEAD~1
+
+    rollback() {
+      if [ "$(git branch --show-current)" != "$cur" ]; then
+        git cherry-pick --abort 2>/dev/null || true
+        git reset -q --hard HEAD 2>/dev/null
+        git checkout -q "$cur" 2>/dev/null
+        git branch -D "$branch" 2>/dev/null
+      fi
+      [ -n "$unstaged_stash" ] && git stash pop -q >/dev/null 2>&1
+      echo 'Rolled back to original state.'
+    }
+
+    if [ -n "$base_arg" ]; then
+      git fetch -q origin master || { rollback; exit 1; }
+      git create "$slug" "$base_arg" || { rollback; exit 1; }
+    else
+      git create "$slug" || { rollback; exit 1; }
+    fi
+
+    git cherry-pick "$commit_sha" || {
+      echo 'Cherry-pick to new branch failed.'
+      rollback
+      exit 1
+    }
+
+    git push -q -u origin "$branch" 2>/dev/null || { echo 'Push failed.'; rollback; exit 1; }
+
+    create_pr="${GIT_CMT_CREATE_PR:-}"
+    if [ -z "$create_pr" ]; then
+      printf 'Create draft PR? [y/n]: '
+      read -r create_pr </dev/tty
+    fi
+    if [ "$create_pr" = y ] || [ "$create_pr" = Y ]; then
+      gh pr create --base "$pr_base" --head "$branch" --title "$msg" --body '' --draft --assignee '@me' | tail -1
+    fi
+
+    git checkout -q "$cur" || { echo 'Failed to return to original branch.'; exit 1; }
+    [ -n "$unstaged_stash" ] && git stash pop -q >/dev/null 2>&1
+    echo ''
+    echo "Committed to $branch and returned to $cur."
+    ;;
+  *)
+    if [ -n "$add_all" ]; then git add -A; fi
+    git commit -q $flags -m "$msg"
+    ;;
+esac
