@@ -25,12 +25,12 @@ git config --global rebase.autoSquash true
 git config --global rebase.updateRefs true
 echo "Set rebase.autoSquash=true and rebase.updateRefs=true"
 
-# Register global git aliases pointing to the scripts
+# Register global git aliases pointing to the scripts (by name, not absolute path)
 for script in "$BIN_DIR"/git-*; do
   name=$(basename "$script")
   alias_name="${name#git-}"
-  git config --global alias."$alias_name" "!$script"
-  echo "  git $alias_name → $script"
+  git config --global alias."$alias_name" "!$name"
+  echo "  git $alias_name → $name"
 done
 
 echo ""
