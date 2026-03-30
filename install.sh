@@ -19,9 +19,19 @@ echo ""
 echo "Ensure $TARGET is on your PATH:"
 echo "  export PATH=\"$TARGET:\$PATH\""
 echo ""
-# Set required rebase config
+
+# Set required git config
 git config --global rebase.autoSquash true
 git config --global rebase.updateRefs true
 echo "Set rebase.autoSquash=true and rebase.updateRefs=true"
+
+# Register global git aliases pointing to the scripts
+for script in "$BIN_DIR"/git-*; do
+  name=$(basename "$script")
+  alias_name="${name#git-}"
+  git config --global alias."$alias_name" "!$script"
+  echo "  git $alias_name → $script"
+done
+
 echo ""
-echo "Then use: git amd, git cmt, git fix, git fp, git rb"
+echo "Installed: git amd, git cmt, git fix, git fp, git rb"

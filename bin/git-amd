@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# git-amd: Amend-squash — stage, fixup commit, and autosquash rebase in one step
+# git-amd: Amend-squash - stage, fixup commit, and autosquash rebase in one step
 # Usage: git amd [<commit-ref>]
 #   Defaults to HEAD if no commit ref given.
 #   If nothing is staged, stages all changes first.
