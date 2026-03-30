@@ -4,13 +4,13 @@ A collection of Git subcommands that streamline a commit-focused, stacked-branch
 
 ## Commands
 
-| Command | Description |
-| ------- | ----------- |
+| Command   | Description                                                                                                                                                     |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `git cmt` | Smart commit assistant — commit to the current branch, a new branch (from the default branch), or a stacked branch, then optionally push and create a draft PR. |
-| `git amd` | Amend any commit — creates a fixup commit and immediately autosquash-rebases it into the target (defaults to HEAD). |
-| `git fix` | Create a `--fixup` commit for a given ref (for manual rebase later). |
-| `git rb` | Fetch and interactive rebase onto the remote default branch with autosquash. |
-| `git fp` | Force push with lease (`--force-with-lease`). |
+| `git amd` | Amend any commit — creates a fixup commit and immediately autosquash-rebases it into the target (defaults to HEAD).                                             |
+| `git fix` | Create a `--fixup` commit for a given ref (for manual rebase later).                                                                                            |
+| `git rb`  | Fetch and interactive rebase onto the remote default branch with autosquash.                                                                                    |
+| `git fp`  | Force push with lease (`--force-with-lease`).                                                                                                                   |
 
 ## Install
 

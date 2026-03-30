@@ -34,4 +34,19 @@ for script in "$BIN_DIR"/git-*; do
 done
 
 echo ""
+
+# Add zsh completion for git-rb (branch completion)
+ZSHRC="${HOME}/.zshrc"
+if [ -f "$ZSHRC" ] && ! grep -q '_git-rb()' "$ZSHRC"; then
+  cat >> "$ZSHRC" << 'EOF'
+
+# Add branch completion for git rb alias
+_git-rb() { _git-checkout }
+EOF
+  echo "Added zsh completion for git rb to $ZSHRC"
+else
+  echo "zsh completion for git rb already present (or no ~/.zshrc)"
+fi
+
+echo ""
 echo "Installed: git amd, git cmt, git fix, git fp, git rb"
