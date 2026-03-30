@@ -6,13 +6,23 @@
 #
 # Instead of committing to the current branch, asks where to commit:
 #   [t] This branch (current)
-#   [n] New branch (from master)
+#   [n] New branch (from default branch)
 #   [s] Stacked branch (from this branch)
 #
 # Encourages automatically generated branches and a commit-focused workflow.
 # Automatic PR creation baked in.
 
 set -euo pipefail
+
+# Detect the remote default branch (main or master)
+default_branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||') || true
+if [ -z "$default_branch" ]; then
+  if git rev-parse --verify origin/main >/dev/null 2>&1; then
+    default_branch=main
+  else
+    default_branch=master
+  fi
+fi
 
 msg=''
 flags=''
@@ -51,7 +61,7 @@ cur=$(git branch --show-current)
 echo ''
 echo 'Commit to:'
 printf '  [t] This branch (%s)\n' "$cur"
-echo '  [n] New branch (from master)'
+printf '  [n] New branch (from %s)\n' "$default_branch"
 echo '  [s] Stacked branch (from this branch)'
 printf 'Choice [t/n/s]: '
 read -r choice
@@ -63,8 +73,8 @@ case "$choice" in
   n|N|s|S)
     branch="torbenn/$slug"
     if [ "$choice" = n ] || [ "$choice" = N ]; then
-      base_arg=master
-      pr_base=master
+      base_arg=$default_branch
+      pr_base=$default_branch
     else
       base_arg=
       pr_base="$cur"
@@ -115,7 +125,7 @@ case "$choice" in
     }
 
     if [ -n "$base_arg" ]; then
-      git fetch -q origin master || { rollback; exit 1; }
+      git fetch -q origin "$default_branch" || { rollback; exit 1; }
       git create "$slug" "$base_arg" || { rollback; exit 1; }
     else
       git create "$slug" || { rollback; exit 1; }

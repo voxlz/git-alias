@@ -2,11 +2,15 @@
 # Test helper for git-cmt tests
 # Sources: setup/teardown functions, assertion helpers, mock utilities
 
+# Kill any test that runs longer than 10 seconds
+export BATS_TEST_TIMEOUT=10
+
 # ─── Temp repo management ───
 
 setup_test_repo() {
   TEST_DIR=$(mktemp -d)
   ORIG_DIR="$PWD"
+  ORIG_PATH="$PATH"
   cd "$TEST_DIR"
 
   git init -q
@@ -34,7 +38,34 @@ setup_test_repo() {
 
 teardown_test_repo() {
   cd "$ORIG_DIR"
+  export PATH="$ORIG_PATH"
   rm -rf "$TEST_DIR" "$REMOTE_DIR" "$MOCK_DIR"
+}
+
+# Setup a test repo with "main" as the default branch (instead of master)
+setup_test_repo_main() {
+  TEST_DIR=$(mktemp -d)
+  ORIG_DIR="$PWD"
+  ORIG_PATH="$PATH"
+  cd "$TEST_DIR"
+
+  git init -q -b main
+  git config user.email "test@test.com"
+  git config user.name "Test User"
+  git config rebase.autoSquash true
+  git config rebase.updateRefs true
+
+  echo "init" > file.txt
+  git add .
+  git commit -q -m "init"
+
+  REMOTE_DIR=$(mktemp -d)
+  git init -q --bare "$REMOTE_DIR"
+  git remote add origin "$REMOTE_DIR"
+  git push -q -u origin main
+
+  export PATH="$MOCK_DIR:$BIN_DIR:$PATH"
+  export GIT_CMT_CREATE_PR=n
 }
 
 # ─── Mock setup ───
