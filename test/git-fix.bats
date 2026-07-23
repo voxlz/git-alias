@@ -14,6 +14,15 @@ teardown() {
 
 # ─── Basic fixup ───
 
+@test "defaults to a fixup commit for HEAD" {
+  echo "change" >> file.txt
+  git add file.txt
+
+  git-fix
+
+  assert_commit_message "fixup! init"
+}
+
 @test "creates fixup commit for HEAD" {
   echo "change" >> file.txt
   git add file.txt
