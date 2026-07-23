@@ -18,7 +18,7 @@ A collection of Git subcommands that streamline a commit-focused, stacked-branch
 
 - **`git rb [<rebase args>]`**
 
-  Fetch and interactively rebase onto the remote default branch with autosquash.
+  Fetch and rebase onto the remote default branch with `--interactive` (`-i`). The installer enables `rebase.autoSquash` and `rebase.updateRefs`.
 
 - **`git fp [<push args>]`**
 
