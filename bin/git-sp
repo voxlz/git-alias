@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# git-sp: Force-push the current stacked branch and its ancestors above origin's default branch
+# Usage: git sp [<base>]
+
+set -euo pipefail
+
+git fetch origin
+
+base="${1:-}"
+if [ -z "$base" ]; then
+  base=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/||') || true
+fi
+if [ -z "$base" ]; then
+  if git rev-parse --verify origin/main >/dev/null 2>&1; then
+    base=origin/main
+  else
+    base=origin/master
+  fi
+fi
+
+current=$(git branch --show-current)
+if [ -z "$current" ]; then
+  echo "Cannot stack-push from a detached HEAD." >&2
+  exit 1
+fi
+
+if ! git merge-base --is-ancestor "$base" "$current"; then
+  echo "Current branch $current is not based on $base." >&2
+  exit 1
+fi
+
+while read -r branch; do
+  if git merge-base --is-ancestor "$base" "$branch" &&
+    git merge-base --is-ancestor "$branch" "$current" &&
+    ! git merge-base --is-ancestor "$branch" "$base"; then
+    git push --force-with-lease origin "$branch:$branch"
+  fi
+done < <(git for-each-ref --format='%(refname:short)' refs/heads)

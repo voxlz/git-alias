@@ -49,4 +49,4 @@ else
 fi
 
 echo ""
-echo "Installed: git amd, git cmt, git fix, git fp, git rb"
+echo "Installed: git amd, git cmt, git fix, git fp, git rb, git sp"
