@@ -4,7 +4,7 @@ A collection of Git subcommands that streamline a commit-focused, stacked-branch
 
 ## Commands
 
-- **`git cmt [<commit args>]`**
+- **`git cmt <commit args>`**
 
   Smart commit assistant - commit to the current branch, a new branch (from the default branch), or a stacked branch, then optionally push and create a draft PR.
 
@@ -12,15 +12,15 @@ A collection of Git subcommands that streamline a commit-focused, stacked-branch
 
   Amend any commit - creates a fixup commit and immediately autosquash-rebases it into the target.
 
-- **`git fix <commit-ref=HEAD> [<commit args>]`**
+- **`git fix <commit-ref=HEAD> <commit args>`**
 
   Create a `--fixup` commit for a given ref, for manual rebase later.
 
-- **`git rb [<rebase args>]`**
+- **`git rb <rebase args>`**
 
   Fetch and rebase onto the remote default branch with `--interactive` (`-i`). The installer enables `rebase.autoSquash` and `rebase.updateRefs`.
 
-- **`git fp [<push args>]`**
+- **`git fp <push args>`**
 
   Force-push with lease (`--force-with-lease`).
 
@@ -28,7 +28,7 @@ A collection of Git subcommands that streamline a commit-focused, stacked-branch
 
   Force-push with lease (`--force-with-lease`) the current stacked branch and its unmerged ancestors above the remote default branch.
 
-Square brackets denote optional arguments. `<argument=default>` is optional and shows the value used when omitted.
+Command arguments are optional. `<argument=default>` shows the value used when omitted.
 
 ## Install
 
