@@ -11,7 +11,7 @@ A collection of Git subcommands that streamline a commit-focused, stacked-branch
 | `git fix [<commit-ref>] [<git commit options>]`          | Create a `--fixup` commit for a given ref, for manual rebase later. Defaults to `HEAD`.                                                                       |
 | `git rb [<git rebase options>]`                           | Fetch and interactively rebase onto the remote default branch with autosquash.                                                                                |
 | `git fp [<git push options>]`                             | Force-push with lease (`--force-with-lease`).                                                                                                                 |
-| `git sp [<base>]`                                        | Force-push the current stacked branch and its unmerged ancestors above the remote default branch.                                                              |
+| `git sp [<base>]`                                        | Force-push the current stacked branch and its unmerged ancestors above the remote default branch. Defaults to `origin`'s default branch.                       |
 
 ## Install
 
